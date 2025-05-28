@@ -1,10 +1,6 @@
-import {
-  PipeTransform,
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
-import {BaseSchema, safeParse} from 'valibot';
-import {formatValibotPath} from "../utils/formatValibotPath";
+import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { BaseSchema, safeParse } from 'valibot';
+import { formatValibotPath } from '../utils/formatValibotPath';
 
 @Injectable()
 export class ValibotPipe<T = any> implements PipeTransform<unknown, T> {

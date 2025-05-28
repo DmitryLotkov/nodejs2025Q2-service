@@ -1,7 +1,4 @@
-import {pipe, string, uuid} from "valibot";
+import { pipe, string, uuid } from 'valibot';
 
 export const uuidString = (label = 'ID') =>
-    pipe(
-        string(),
-        uuid(`${label} must be valid UUID v4`)
-    );
+  pipe(string(), uuid(`${label} must be valid UUID v4`));
