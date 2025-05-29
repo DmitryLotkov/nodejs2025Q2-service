@@ -10,7 +10,7 @@ import { randomUUID } from 'crypto';
 export class UserService {
   private users: User[] = [];
 
-  create(userDto: CreateUserDto): Omit<User, 'password'> {
+  public create(userDto: CreateUserDto): Omit<User, 'password'> {
     const now = Date.now();
     const user: User = {
       id: randomUUID(),
@@ -26,7 +26,10 @@ export class UserService {
     return safe;
   }
 
-  update(userId: string, updateUserDto: UpdatePasswordDto) {
+  public update(
+    userId: string,
+    updateUserDto: UpdatePasswordDto,
+  ): Omit<User, 'password'> {
     const now = Date.now();
     const currentUser = this.users.find((user) => user.id === userId);
     if (!currentUser) {
@@ -53,8 +56,28 @@ export class UserService {
     return safeUser;
   }
 
-  findAll() {
+  public findAll(): Omit<User, 'password'>[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return this.users.map(({ password, ...rest }) => rest);
+  }
+
+  public getById(userId: string): Omit<User, 'password'> {
+    const currentUser = this.users.find((user) => user.id === userId);
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...safeUser } = currentUser;
+    return safeUser;
+  }
+
+  public deleteUser(id: string): void {
+    const index = this.users.findIndex((u) => u.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    this.users.splice(index, 1);
   }
 }
