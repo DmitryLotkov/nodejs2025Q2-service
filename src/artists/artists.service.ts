@@ -1,10 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Artist } from './artist.entity';
-import { ArtistDto } from './artist.dto';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
+import { Artist, ArtistDto } from './artist.entity';
 import { randomUUID } from 'crypto';
+import { AlbumService } from '../albums/album.service';
 
 @Injectable()
 export class ArtistsService {
+  constructor(
+    @Inject(forwardRef(() => AlbumService))
+    private readonly albumService: AlbumService,
+  ) {}
   private artists: Artist[] = [];
 
   public findAll(): Artist[] {
@@ -54,7 +63,7 @@ export class ArtistsService {
 
     this.artists.splice(index, 1);
 
-    //this.albumService.unlinkArtist(id);   // TODO: реализовать
+    this.albumService.removeByArtistId(id);
     //this.trackService.unlinkArtist(id);  // TODO: реализовать
     //this.favoritesService.removeArtist(id); // TODO: реализовать
   }

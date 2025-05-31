@@ -3,12 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserService } from './users/user.service';
 import { UserController } from './users/user.controller';
-import { ArtistsController } from './artists/artists.controller';
-import { ArtistsService } from './artists/artists.service';
+import { AlbumsModule } from './albums/albums.module';
+import { ArtistsModule } from './artists/artists.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController, UserController, ArtistsController],
-  providers: [AppService, UserService, ArtistsService],
+  imports: [AlbumsModule, ArtistsModule],
+  controllers: [AppController, UserController],
+  providers: [UserService, AppService],
 })
 export class AppModule {}

@@ -14,11 +14,8 @@ import {
 import { ArtistsService } from './artists.service';
 import { artistsRoutes } from '../../test/endpoints';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
-import { CreateUserSchema } from '../users/user.schema';
-import { CreateUserDto } from '../users/user-entity';
-import { CreateArtistSchema } from './shemas/artist-schema';
-import { ArtistDto } from './artist.dto';
-import { Artist } from './artist.entity';
+import { CreateArtistSchema } from './artist-schema';
+import { ArtistDto } from './artist.entity';
 
 @Controller(artistsRoutes.getAll)
 export class ArtistsController {
