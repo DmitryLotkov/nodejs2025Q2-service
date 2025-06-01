@@ -1,10 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { Track } from './track.entity';
 import { randomUUID } from 'crypto';
 import { TrackDto } from './track-dto-schema';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class TracksService {
+  constructor(
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
+  ) {}
   private tracks: Track[] = [];
 
   public getAll(): Track[] {
@@ -44,20 +54,22 @@ export class TracksService {
       albumId: dto.albumId,
     };
 
-    this.tracks = this.tracks.map((user) =>
-      user.id === id ? updatedTrack : user,
+    this.tracks = this.tracks.map((track) =>
+      track.id === id ? updatedTrack : track,
     );
 
     return updatedTrack;
   }
 
   public delete(id: string): void {
-    const index = this.tracks.findIndex((track) => track.id === id);
-    if (index === -1) {
+    const everExisted = this.tracks.some((track) => track.id === id);
+
+    if (!everExisted) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
 
-    this.tracks.splice(index, 1);
+    this.tracks = this.tracks.filter((track) => track.id !== id);
+    this.favoritesService.removeReference('tracks', id);
   }
 
   public removeByAlbumId(albumId: string): void {

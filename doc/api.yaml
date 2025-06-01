@@ -21,10 +21,10 @@ components:
         version:
           type: number
           example: 1
-        createAt:
+        createdAt:
           type: number
           example: 1655000000
-        updateAt:
+        updatedAt:
           type: number
           example: 1655000000
       required:
@@ -123,7 +123,7 @@ paths:
         - Login
       security: []
       summary: Login
-      description: Logins a users and returns a JWT-token
+      description: Logins in a users and returns a JWT-token
       requestBody:
         required: true
         content:
@@ -139,7 +139,6 @@ paths:
                   type: string
                   description: Password
               required:
-                - users
                 - login
       responses:
         200:
@@ -160,7 +159,7 @@ paths:
         - Signup
       security: [ ]
       summary: Signup
-      description: Signup a users
+      description: Signup in a users
       requestBody:
         required: true
         content:
@@ -230,7 +229,7 @@ paths:
                 - password
       responses:
         201:
-          description: The users has been created.
+          description: The user has been created.
           content:
             application/json:
               schema:
@@ -305,10 +304,10 @@ paths:
                   version:
                     type: integer
                     example: 2
-                  createAt:
+                  createdAt:
                     type: integer
                     example: 1655000000
-                  updateAt:
+                  updatedAt:
                     type: integer
                     example: 1655999999
         400:
@@ -745,7 +744,7 @@ paths:
       tags:
         - Favorites
       summary: Get all favorites
-      description: Gets all favorites movies, tracks and books
+      description: Gets all favorites artists, albums and tracks
       responses:
         200:
           description: Successful operation

@@ -8,10 +8,13 @@ import { Artist, ArtistDto } from './artist.entity';
 import { randomUUID } from 'crypto';
 import { AlbumsService } from '../albums/albums.service';
 import { TracksService } from '../tracks/tracks.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class ArtistsService {
   constructor(
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
     private readonly trackService: TracksService,
     @Inject(forwardRef(() => AlbumsService))
     private readonly albumService: AlbumsService,
@@ -58,14 +61,16 @@ export class ArtistsService {
   }
 
   public delete(id: string): void {
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    if (index === -1) {
+    const everExisted = this.artists.some((artist) => artist.id === id);
+
+    if (!everExisted) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
 
-    this.artists.splice(index, 1);
+    this.artists = this.artists.filter((artist) => artist.id !== id);
 
     this.albumService.removeByArtistId(id);
     this.trackService.removeByArtistId(id);
+    this.favoritesService.removeReference('artists', id);
   }
 }
