@@ -11,14 +11,14 @@ import {
   NotFoundException,
   HttpCode,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UsersService } from './users.service';
 import { CreateUserSchema, UpdatePasswordSchema } from './user.schema';
 import { CreateUserDto, UpdatePasswordDto } from './user-entity';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 
 @Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UsersController {
+  constructor(private readonly userService: UsersService) {}
 
   @Get()
   getAll() {

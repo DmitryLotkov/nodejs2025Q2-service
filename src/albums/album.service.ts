@@ -8,10 +8,12 @@ import { Album } from './album.entity';
 import { randomUUID } from 'crypto';
 import { AlbumDto } from './album-dto-schema';
 import { ArtistsService } from '../artists/artists.service';
+import { TracksService } from '../tracks/tracks.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
+    private readonly trackService: TracksService,
     @Inject(forwardRef(() => ArtistsService))
     private readonly artistsService: ArtistsService,
   ) {}
@@ -65,13 +67,15 @@ export class AlbumService {
     return updatedAlbum;
   }
 
-  public delete(id: string) {
+  public delete(id: string): void {
     const index = this.albums.findIndex((album) => album.id === id);
     if (index === -1) {
       throw new NotFoundException('Album not found');
     }
 
     this.albums.splice(index, 1);
+
+    this.trackService.removeByAlbumId(id);
   }
 
   public removeByArtistId(artistId: string): void {

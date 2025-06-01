@@ -7,6 +7,7 @@ import {
   pipe,
   minValue,
   integer,
+  InferOutput,
 } from 'valibot';
 import { uuidString } from '../common/schemas/uuid-string';
 
@@ -20,3 +21,5 @@ export const TrackDtoSchema = object({
     minValue(10, 'Duration must be at least 10 second'),
   ),
 });
+
+export type TrackDto = InferOutput<typeof TrackDtoSchema>;

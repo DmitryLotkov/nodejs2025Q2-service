@@ -7,7 +7,7 @@ import { User, CreateUserDto, UpdatePasswordDto } from './user-entity';
 import { randomUUID } from 'crypto';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   private users: User[] = [];
 
   public create(userDto: CreateUserDto): Omit<User, 'password'> {

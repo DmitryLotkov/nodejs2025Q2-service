@@ -7,10 +7,12 @@ import {
 import { Artist, ArtistDto } from './artist.entity';
 import { randomUUID } from 'crypto';
 import { AlbumService } from '../albums/album.service';
+import { TracksService } from '../tracks/tracks.service';
 
 @Injectable()
 export class ArtistsService {
   constructor(
+    private readonly trackService: TracksService,
     @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
   ) {}
@@ -64,7 +66,7 @@ export class ArtistsService {
     this.artists.splice(index, 1);
 
     this.albumService.removeByArtistId(id);
-    //this.trackService.unlinkArtist(id);  // TODO: реализовать
+    this.trackService.removeByArtistId(id);
     //this.favoritesService.removeArtist(id); // TODO: реализовать
   }
 }
