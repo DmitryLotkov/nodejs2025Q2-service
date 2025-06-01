@@ -10,13 +10,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AlbumService } from './album.service';
+import { AlbumsService } from './albums.service';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 import { AlbumDtoSchema, AlbumDto } from './album-dto-schema';
+import { albumsRoutes } from '../../test/endpoints';
 
-@Controller('album')
+@Controller(albumsRoutes.getAll)
 export class AlbumsController {
-  constructor(private readonly albumService: AlbumService) {}
+  constructor(private readonly albumService: AlbumsService) {}
 
   @Get()
   getAll() {

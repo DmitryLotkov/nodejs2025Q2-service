@@ -27,7 +27,7 @@ export class ArtistsController {
 
   @Get(':id')
   getArtist(@Param('id', new ParseUUIDPipe()) id: string) {
-    const artist = this.artistsService.findById(id);
+    const artist = this.artistsService.getById(id);
     if (!artist) {
       throw new NotFoundException();
     }

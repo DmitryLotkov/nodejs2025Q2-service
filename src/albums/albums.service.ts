@@ -9,10 +9,13 @@ import { randomUUID } from 'crypto';
 import { AlbumDto } from './album-dto-schema';
 import { ArtistsService } from '../artists/artists.service';
 import { TracksService } from '../tracks/tracks.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
-export class AlbumService {
+export class AlbumsService {
   constructor(
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
     private readonly trackService: TracksService,
     @Inject(forwardRef(() => ArtistsService))
     private readonly artistsService: ArtistsService,
@@ -33,7 +36,7 @@ export class AlbumService {
 
   public create(dto: AlbumDto): Album {
     if (dto.artistId !== null) {
-      this.artistsService.findById(dto.artistId);
+      this.artistsService.getById(dto.artistId);
     }
 
     const album: Album = {
@@ -49,7 +52,7 @@ export class AlbumService {
 
   public update(albumId: string, dto: AlbumDto): Album {
     if (dto.artistId !== null) {
-      this.artistsService.findById(dto.artistId);
+      this.artistsService.getById(dto.artistId);
     }
     const index = this.albums.findIndex((album) => album.id === albumId);
     if (index === -1) {
@@ -76,6 +79,7 @@ export class AlbumService {
     this.albums.splice(index, 1);
 
     this.trackService.removeByAlbumId(id);
+    this.favoritesService.removeReference('albums', id);
   }
 
   public removeByArtistId(artistId: string): void {

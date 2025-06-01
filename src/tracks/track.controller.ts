@@ -9,12 +9,14 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 import { TrackDtoSchema, TrackDto } from './track-dto-schema';
+import { tracksRoutes } from '../../test/endpoints';
 
-@Controller('track')
+@Controller(tracksRoutes.getAll)
 export class TrackController {
   constructor(private readonly tracksService: TracksService) {}
   @Get()
@@ -24,7 +26,12 @@ export class TrackController {
 
   @Get(':id')
   getById(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.tracksService.getById(id);
+    const currentTrack = this.tracksService.getById(id);
+    if (!currentTrack) {
+      throw new NotFoundException(`Track with id ${id} not found`);
+    } else {
+      return currentTrack;
+    }
   }
 
   @Post()
