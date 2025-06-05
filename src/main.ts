@@ -7,7 +7,10 @@ const PORT = process.env.PORT || 4000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.enableShutdownHooks();
+
   await app.listen(PORT);
 }
 void bootstrap();
