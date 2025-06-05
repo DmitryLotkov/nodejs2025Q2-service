@@ -3,35 +3,34 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { User, CreateUserDto, UpdatePasswordDto } from './user-entity';
-import { randomUUID } from 'crypto';
+import { CreateUserDto, UpdatePasswordDto, User } from './user-entity';
+import { PrismaService } from '../prisma/prisma/prisma.service';
+import { User as PrismaUser } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  public create(userDto: CreateUserDto): Omit<User, 'password'> {
-    const now = Date.now();
-    const user: User = {
-      id: randomUUID(),
-      login: userDto.login,
-      password: userDto.password,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.users.push(user);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safe } = user;
-    return safe;
+  public async create(userDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    const user = await this.prisma.user.create({
+      data: {
+        login: userDto.login,
+        password: userDto.password,
+        version: 1,
+      },
+    });
+
+    return this.serializeUser(user);
   }
 
-  public update(
+  public async update(
     userId: string,
     updateUserDto: UpdatePasswordDto,
-  ): Omit<User, 'password'> {
-    const now = Date.now();
-    const currentUser = this.users.find((user) => user.id === userId);
+  ): Promise<Omit<User, 'password'>> {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
     if (!currentUser) {
       throw new NotFoundException('User not found');
     }
@@ -40,44 +39,56 @@ export class UsersService {
       throw new ForbiddenException('Old password is incorrect');
     }
 
-    const updatedUser: User = {
-      ...currentUser,
-      password: updateUserDto.newPassword,
-      updatedAt: now,
-      version: currentUser.version + 1,
-    };
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: updateUserDto.newPassword,
+        version: currentUser.version + 1,
+      },
+    });
 
-    this.users = this.users.map((user) =>
-      user.id === userId ? updatedUser : user,
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = updatedUser;
-    return safeUser;
+    return this.serializeUser(updatedUser);
   }
 
-  public findAll(): Omit<User, 'password'>[] {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return this.users.map(({ password, ...rest }) => rest);
+  public async findAll(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map(this.serializeUser);
   }
 
-  public getById(userId: string): Omit<User, 'password'> {
-    const currentUser = this.users.find((user) => user.id === userId);
-    if (!currentUser) {
+  public async getById(userId: string): Promise<Omit<User, 'password'>> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = currentUser;
-    return safeUser;
+    return this.serializeUser(user);
   }
 
-  public deleteUser(id: string): void {
-    const index = this.users.findIndex((u) => u.id === id);
-    if (index === -1) {
+  public async deleteUser(id: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    this.users.splice(index, 1);
+    await this.prisma.user.delete({ where: { id } });
+  }
+
+  private serializeUser(user: PrismaUser): Omit<User, 'password'> & {
+    createdAt: number;
+    updatedAt: number;
+  } {
+    const { id, login, version, createdAt, updatedAt } = user;
+
+    return {
+      id,
+      login,
+      version,
+      createdAt: createdAt.getTime(),
+      updatedAt: updatedAt.getTime(),
+    };
   }
 }

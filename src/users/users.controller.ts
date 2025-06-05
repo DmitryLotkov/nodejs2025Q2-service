@@ -53,6 +53,6 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   delete(@Param('id', new ParseUUIDPipe()) id: string) {
-    this.userService.deleteUser(id);
+    return this.userService.deleteUser(id);
   }
 }
