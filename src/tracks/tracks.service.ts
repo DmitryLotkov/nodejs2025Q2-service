@@ -62,11 +62,11 @@ export class TracksService {
     const track = await this.prismaService.track.findUnique({ where: { id } });
     if (!track) throw new NotFoundException(`Track with id ${id} not found`);
 
+    await this.favoritesService.removeReference('tracks', id);
+
     await this.prismaService.track.delete({
       where: { id },
     });
-
-    await this.favoritesService.removeReference('tracks', id);
   }
 
   public async removeByAlbumId(albumId: string): Promise<void> {

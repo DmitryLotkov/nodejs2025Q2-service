@@ -72,10 +72,10 @@ export class AlbumsService {
       throw new NotFoundException('Album not found');
     }
 
-    await this.prismaService.album.delete({ where: { id } });
-
     await this.trackService.removeByAlbumId(id);
     await this.favoritesService.removeReference('albums', id);
+
+    await this.prismaService.album.delete({ where: { id } });
   }
 
   public async removeByArtistId(artistId: string): Promise<void> {

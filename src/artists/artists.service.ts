@@ -77,12 +77,12 @@ export class ArtistsService {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
 
+    await this.albumService.removeByArtistId(id);
+    await this.trackService.removeByArtistId(id);
+    await this.favoritesService.removeReference('artists', id);
+
     await this.prismaService.artist.delete({
       where: { id },
     });
-
-    await this.trackService.removeByArtistId(id);
-    await this.favoritesService.removeReference('artists', id);
-    await this.albumService.removeByArtistId(id);
   }
 }

@@ -9,11 +9,6 @@ import { Favorites } from './favorites.entity';
 @Injectable()
 export class FavoritesService {
   constructor(private readonly prismaService: PrismaService) {}
-  private favorites: Favorites = {
-    artists: [],
-    albums: [],
-    tracks: [],
-  };
 
   public async getAll(): Promise<Favorites> {
     const favorites = await this.prismaService.favorites.findFirst({
@@ -153,7 +148,7 @@ export class FavoritesService {
     }
 
     if (type === 'albums') {
-      const existing = this.prismaService.favoritesOnAlbums.findUnique({
+      const existing = await this.prismaService.favoritesOnAlbums.findUnique({
         where: {
           favoritesId_albumId: {
             favoritesId: favorites.id,
@@ -177,7 +172,7 @@ export class FavoritesService {
     }
 
     if (type === 'artists') {
-      const existing = this.prismaService.favoritesOnArtists.findUnique({
+      const existing = await this.prismaService.favoritesOnArtists.findUnique({
         where: {
           favoritesId_artistId: {
             favoritesId: favorites.id,
@@ -201,7 +196,46 @@ export class FavoritesService {
     }
   }
 
-  public removeReference(type: keyof Favorites, id: string): void {
-    this.favorites[type] = this.favorites[type].filter((favId) => favId !== id);
+  public async removeReference(
+    type: keyof Favorites,
+    id: string,
+  ): Promise<void> {
+    const favorites = await this.prismaService.favorites.findFirst();
+    if (!favorites) {
+      return;
+    }
+
+    switch (type) {
+      case 'artists': {
+        await this.prismaService.favoritesOnArtists.deleteMany({
+          where: {
+            favoritesId: favorites.id,
+            artistId: id,
+          },
+        });
+
+        break;
+      }
+      case 'albums': {
+        await this.prismaService.favoritesOnAlbums.deleteMany({
+          where: {
+            favoritesId: favorites.id,
+            albumId: id,
+          },
+        });
+
+        break;
+      }
+      case 'tracks': {
+        await this.prismaService.favoritesOnTracks.deleteMany({
+          where: {
+            favoritesId: favorites.id,
+            trackId: id,
+          },
+        });
+
+        break;
+      }
+    }
   }
 }
