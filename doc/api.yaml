@@ -21,10 +21,10 @@ components:
         version:
           type: number
           example: 1
-        createAt:
+        createdAt:
           type: number
           example: 1655000000
-        updateAt:
+        updatedAt:
           type: number
           example: 1655000000
       required:
@@ -123,7 +123,7 @@ paths:
         - Login
       security: []
       summary: Login
-      description: Logins a user and returns a JWT-token
+      description: Logins in a users and returns a JWT-token
       requestBody:
         required: true
         content:
@@ -139,7 +139,6 @@ paths:
                   type: string
                   description: Password
               required:
-                - user
                 - login
       responses:
         200:
@@ -160,7 +159,7 @@ paths:
         - Signup
       security: [ ]
       summary: Signup
-      description: Signup a user
+      description: Signup in a users
       requestBody:
         required: true
         content:
@@ -209,8 +208,8 @@ paths:
     post:
       tags:
         - Users
-      summary: Create user
-      description: Creates a new user
+      summary: Create users
+      description: Creates a new users
       requestBody:
         required: true
         content:
@@ -221,10 +220,10 @@ paths:
               properties:
                 login:
                   type: string
-                  description: The user's login
+                  description: The users's login
                 password:
                   type: string
-                  description: The user's password
+                  description: The users's password
               required:
                 - login
                 - password
@@ -249,8 +248,8 @@ paths:
     get:
       tags:
         - Users
-      summary: Get single user by id
-      description: Get single user by id
+      summary: Get single users by id
+      description: Get single users by id
       responses:
         200:
           description: Successful operation
@@ -268,8 +267,8 @@ paths:
     put:
       tags:
         - Users
-      summary: Update a user's password
-      description: Updates a user's password by ID
+      summary: Update a users's password
+      description: Updates a users's password by ID
       requestBody:
         required: true
         content:
@@ -280,16 +279,16 @@ paths:
               properties:
                 oldPassword:
                   type: string
-                  description: The user's old password
+                  description: The users's old password
                 newPassword:
                   type: string
-                  description: The user's new password
+                  description: The users's new password
               required:
                 - oldPassword
                 - newPassword
       responses:
         200:
-          description: The user has been updated.
+          description: The users has been updated.
           content:
             application/json:
               schema:
@@ -305,10 +304,10 @@ paths:
                   version:
                     type: integer
                     example: 2
-                  createAt:
+                  createdAt:
                     type: integer
                     example: 1655000000
-                  updateAt:
+                  updatedAt:
                     type: integer
                     example: 1655999999
         400:
@@ -323,11 +322,11 @@ paths:
     delete:
       tags:
         - Users
-      summary: Delete user
-      description: Deletes user by ID.
+      summary: Delete users
+      description: Deletes users by ID.
       responses:
         204:
-          description: The user has been deleted
+          description: The users has been deleted
         400:
           description: Bad request. userId is invalid (not uuid)
         401:
@@ -745,7 +744,7 @@ paths:
       tags:
         - Favorites
       summary: Get all favorites
-      description: Gets all favorites movies, tracks and books
+      description: Gets all favorites artists, albums and tracks
       responses:
         200:
           description: Successful operation
