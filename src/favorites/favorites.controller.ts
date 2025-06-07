@@ -25,28 +25,41 @@ export class FavoritesController {
     private readonly albumService: AlbumsService,
   ) {}
   @Get()
-  getAll(): FavoritesResponse {
-    const favorites = this.favoritesService.getAll();
+  async getAll(): Promise<FavoritesResponse> {
+    const favorites = await this.favoritesService.getAll();
+    async function safeGet<T>(getter: () => Promise<T>): Promise<T | null> {
+      try {
+        return await getter();
+      } catch {
+        return null;
+      }
+    }
 
-    const artists = favorites.artists
-      .map((id) => this.artistsService.getById(id))
-      .filter(Boolean);
-
-    const albums = favorites.albums
-      .map((id) => this.albumService.getById(id))
-      .filter(Boolean);
-
-    const tracks = favorites.tracks
-      .map((id) => this.tracksService.getById(id))
-      .filter(Boolean);
+    const [artists, albums, tracks] = await Promise.all([
+      Promise.all(
+        favorites.artists.map((id) =>
+          safeGet(() => this.artistsService.getById(id)),
+        ),
+      ).then((res) => res.filter(Boolean)),
+      Promise.all(
+        favorites.albums.map((id) =>
+          safeGet(() => this.albumService.getById(id)),
+        ),
+      ).then((res) => res.filter(Boolean)),
+      Promise.all(
+        favorites.tracks.map((id) =>
+          safeGet(() => this.tracksService.getById(id)),
+        ),
+      ).then((res) => res.filter(Boolean)),
+    ]);
 
     return { artists, albums, tracks };
   }
 
   @Post('track/:id')
-  addTrackToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
+  async addTrackToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
     try {
-      this.tracksService.getById(id);
+      await this.tracksService.getById(id);
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new UnprocessableEntityException(

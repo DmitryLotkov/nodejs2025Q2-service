@@ -1,15 +1,15 @@
 import {
-  Injectable,
   NotFoundException,
+  Injectable,
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { Album } from './album.entity';
-import { randomUUID } from 'crypto';
 import { AlbumDto } from './album-dto-schema';
 import { ArtistsService } from '../artists/artists.service';
-import { TracksService } from '../tracks/tracks.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { TracksService } from '../tracks/tracks.service';
+import { PrismaService } from '../prisma/prisma/prisma.service';
+import { Album } from '@prisma/client';
 
 @Injectable()
 export class AlbumsService {
@@ -19,72 +19,69 @@ export class AlbumsService {
     private readonly trackService: TracksService,
     @Inject(forwardRef(() => ArtistsService))
     private readonly artistsService: ArtistsService,
+    private readonly prismaService: PrismaService,
   ) {}
-  private albums: Album[] = [];
 
-  public getAll(): Album[] {
-    return this.albums;
+  public async getAll(): Promise<Album[]> {
+    return this.prismaService.album.findMany();
   }
 
-  public getById(id: string): Album {
-    const album = this.albums.find((album) => album.id === id);
+  public async getById(id: string): Promise<Album> {
+    const album = await this.prismaService.album.findUnique({ where: { id } });
+    if (!album) throw new NotFoundException('Album not found');
+    return album;
+  }
+
+  public async create(dto: AlbumDto): Promise<Album> {
+    if (dto.artistId != null) {
+      await this.artistsService.getById(dto.artistId);
+    }
+
+    return this.prismaService.album.create({
+      data: {
+        name: dto.name,
+        year: dto.year,
+        artistId: dto.artistId ?? null,
+      },
+    });
+  }
+
+  public async update(albumId: string, dto: AlbumDto): Promise<Album> {
+    if (dto.artistId != null) {
+      await this.artistsService.getById(dto.artistId);
+    }
+
+    const album = await this.prismaService.album.findUnique({
+      where: { id: albumId },
+    });
+    if (!album) throw new NotFoundException('Album not found');
+
+    return this.prismaService.album.update({
+      where: { id: albumId },
+      data: {
+        name: dto.name,
+        year: dto.year,
+        artistId: dto.artistId ?? null,
+      },
+    });
+  }
+
+  public async delete(id: string): Promise<void> {
+    const album = await this.prismaService.album.findUnique({ where: { id } });
     if (!album) {
       throw new NotFoundException('Album not found');
     }
-    return album;
+
+    await this.prismaService.album.delete({ where: { id } });
+
+    await this.trackService.removeByAlbumId(id);
+    await this.favoritesService.removeReference('albums', id);
   }
 
-  public create(dto: AlbumDto): Album {
-    if (dto.artistId !== null) {
-      this.artistsService.getById(dto.artistId);
-    }
-
-    const album: Album = {
-      id: randomUUID(),
-      name: dto.name,
-      year: dto.year,
-      artistId: dto.artistId ?? null,
-    };
-
-    this.albums.push(album);
-    return album;
-  }
-
-  public update(albumId: string, dto: AlbumDto): Album {
-    if (dto.artistId !== null) {
-      this.artistsService.getById(dto.artistId);
-    }
-    const index = this.albums.findIndex((album) => album.id === albumId);
-    if (index === -1) {
-      throw new NotFoundException('Album not found');
-    }
-
-    const updatedAlbum: Album = {
-      ...this.albums[index],
-      name: dto.name,
-      year: dto.year,
-      artistId: dto.artistId ?? null,
-    };
-
-    this.albums[index] = updatedAlbum;
-    return updatedAlbum;
-  }
-
-  public delete(id: string): void {
-    const index = this.albums.findIndex((album) => album.id === id);
-    if (index === -1) {
-      throw new NotFoundException('Album not found');
-    }
-
-    this.albums.splice(index, 1);
-
-    this.trackService.removeByAlbumId(id);
-    this.favoritesService.removeReference('albums', id);
-  }
-
-  public removeByArtistId(artistId: string): void {
-    this.albums = this.albums.map((album) =>
-      album.artistId === artistId ? { ...album, artistId: null } : album,
-    );
+  public async removeByArtistId(artistId: string): Promise<void> {
+    await this.prismaService.album.updateMany({
+      where: { artistId },
+      data: { artistId: null },
+    });
   }
 }

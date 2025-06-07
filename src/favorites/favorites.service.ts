@@ -3,18 +3,36 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma/prisma.service';
 import { Favorites } from './favorites.entity';
 
 @Injectable()
 export class FavoritesService {
+  constructor(private readonly prismaService: PrismaService) {}
   private favorites: Favorites = {
     artists: [],
     albums: [],
     tracks: [],
   };
 
-  public getAll(): Favorites {
-    return this.favorites;
+  public async getAll(): Promise<Favorites> {
+    const favorites = await this.prismaService.favorites.findFirst({
+      include: {
+        artists: { select: { id: true } },
+        albums: { select: { id: true } },
+        tracks: { select: { id: true } },
+      },
+    });
+
+    if (!favorites) {
+      return { artists: [], albums: [], tracks: [] };
+    }
+
+    return {
+      artists: favorites.artists.map((artist) => artist.id),
+      albums: favorites.albums.map((album) => album.id),
+      tracks: favorites.tracks.map((track) => track.id),
+    };
   }
 
   public addToFavorites(type: keyof Favorites, id: string): void {
