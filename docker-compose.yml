@@ -13,12 +13,9 @@ services:
     depends_on:
       - postgres
     volumes:
-      - .:/app
-      - /app/node_modules
+      - postgres-data:/var/lib/postgresql/data
     networks:
-      app-network:
-        aliases:
-          - db
+      - app-network
     restart: on-failure
 
   postgres:
