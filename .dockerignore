@@ -1,0 +1,13 @@
+node_modules
+test
+src
+*.ts
+*.log
+*.md
+.git
+.env
+coverage
+dist
+Dockerfile*
+docker-compose*
+README*

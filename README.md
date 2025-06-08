@@ -65,8 +65,22 @@ npm run lint
 npm run format
 ```
 
-### Debugging in VSCode
+# Home Library API
 
-Press <kbd>F5</kbd> to debug.
+## 📦 Docker Setup
 
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+### 🔧 Требования
+
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- GNU Make (Windows: `choco install make`)
+
+### 📁 Structure
+
+├── Dockerfile
+├── Dockerfile.postgres
+├── docker-compose.yml
+├── wait-for.sh
+├── .env
+├── Makefile
+└── src/
