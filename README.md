@@ -64,6 +64,14 @@ npm run lint
 npm run format
 ```
 
+### 🔍 Vulnerability Scanning
+
+You can scan for known security vulnerabilities in your dependencies using:
+
+```bash
+npm run audit
+```
+
 ---
 
 ## 📦 Docker Setup
@@ -86,6 +94,7 @@ npm run format
 ├── Dockerfile.postgres      # Lightweight PostgreSQL image
 ├── docker-compose.yml       # Production compose config
 ├── docker-compose.override.yml  # Overrides for development (watch mode, volumes)
+├── docker-compose.remote.yml # Overrides for running pulled image from Docker Hub
 ├── .dockerignore            # Prevents unnecessary files from being copied to the image
 ├── .env                     # Environment variables
 ├── wait-for.sh             # Script that waits for the PostgreSQL service to be ready
@@ -115,7 +124,18 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -
 docker compose -f docker-compose.yml up --build
 ```
 
+📦 Pull and Run
+1. Pull the image from Docker Hub:
+  docker pull dmitrylotkov/home-library-app:latest
 
+2. Create Docker network (if not already created):
+   docker network create app-network
+
+3. Start using remote compose (recommended):
+   docker compose -f docker-compose.yml -f docker-compose.remote.yml up --pull always
+
+4. Stop and remove containers and volumes:
+   docker compose down -v
 
 **Stop containers and clean volumes:**
 
