@@ -30,4 +30,4 @@ RUN chmod +x wait-for.sh
 ENV NODE_ENV=production
 EXPOSE 4000
 
-CMD ["sh", "./wait-for.sh", "db", "5432", "node", "dist/main"]
+CMD ["sh", "-c", "./wait-for.sh db 5432 && npx prisma migrate deploy && node dist/main"]

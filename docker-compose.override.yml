@@ -1,5 +1,11 @@
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+    volumes:
+      - /app/node_modules
     develop:
       watch:
         - action: sync

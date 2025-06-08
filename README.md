@@ -5,7 +5,6 @@
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
 
-
 > ❗ Before running anything, **make sure Docker Engine is running** on your machine.  
 > You can also start **Docker Desktop**, which runs Docker Engine in the background.
 
@@ -21,15 +20,11 @@ git clone https://github.com/DmitryLotkov/nodejs2025Q2-service.git
 npm install
 ```
 
-## Running application
+## Running application (Locally without Docker)
 
 ```bash
 npm start
 ```
-
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
 
@@ -69,6 +64,8 @@ npm run lint
 npm run format
 ```
 
+---
+
 ## 📦 Docker Setup
 
 ### 🔧 Prerequisites
@@ -84,52 +81,76 @@ npm run format
 
 ```
 .
-├── Dockerfile              # Production
-├── Dockerfile.dev          # Development (hot reload)
-├── docker-compose.yml
-├── docker-compose.override.yml
-├── wait-for.sh
-├── .env
-
+├── Dockerfile               # Production image
+├── Dockerfile.dev           # Development image with hot-reload
+├── Dockerfile.postgres      # Lightweight PostgreSQL image
+├── docker-compose.yml       # Production compose config
+├── docker-compose.override.yml  # Overrides for development (watch mode, volumes)
+├── .dockerignore            # Prevents unnecessary files from being copied to the image
+├── .env                     # Environment variables
+├── wait-for.sh             # Script that waits for the PostgreSQL service to be ready
+├── Makefile                 # Dev/Prod helper commands
+├── prisma/                  # Prisma schema and migrations
+├── src/                     # Application source code
+└── README.md
 ```
 
-### 🚀 Running the Application
+### 🚀 Running in Development Mode (with Hot Reloading)
 
-1. **Build Docker images:**
+1. **Start in dev mode with file watching:**
 
 ```bash
-docker-compose build
+docker compose -f docker-compose.yml -f docker-compose.override.yml up --build --watch
 ```
 
-2. **Start the services:**
-
-```bash
-docker-compose up
-```
-
-3. **Stop and remove all containers and volumes:**
-
-```bash
-docker-compose down -v
-```
-
-Once running, the API will be available at: [http://localhost:4000](http://localhost:4000)
-
-Swagger/OpenAPI docs: [http://localhost:4000/doc](http://localhost:4000/doc)
+2. **Make changes to `.ts` files in `src/`** — they will automatically trigger reload inside the container.
 
 ---
 
-### 🔁 Restart Policy & Hot Reloading
+### 🏗️ Running in Production Mode
 
-- Containers are configured with:  
+1. **Build containers:**
+
+```bash
+docker compose -f docker-compose.yml up --build
+```
+
+
+
+**Stop containers and clean volumes:**
+
+```bash
+docker compose down -v
+```
+
+Once running, the API is available at: [http://localhost:4000](http://localhost:4000)
+
+---
+
+### 🔁 Restart Policy & Hot Reloading (Dev Only)
+
+- Containers use:
   ```yaml
   restart: on-failure
   ```
-- **Hot reloading** is enabled via volume mounting:
+
+- In **development**, hot reloading is enabled with:
+
   ```yaml
-  volumes:
-    - .:/app
-    - /app/node_modules
+  develop:
+    watch:
+      - action: sync
+        path: ./src
+        target: /app/src
+        ignore:
+          - node_modules/
+      - action: sync
+        path: ./prisma
+        target: /app/prisma
+      - action: rebuild
+        path: package.json
+      - action: rebuild
+        path: package-lock.json
   ```
 
 ---
@@ -143,9 +164,7 @@ volumes:
   - postgres-data:/var/lib/postgresql/data
 ```
 
-This ensures your data is **not lost** when the container restarts.
-
-You can also store logs persistently by adding this (optional):
+To also persist logs (optional):
 
 ```yaml
 volumes:
