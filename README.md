@@ -20,6 +20,40 @@ git clone https://github.com/DmitryLotkov/nodejs2025Q2-service.git
 npm install
 ```
 
+
+## 🧬 Database Migrations (Required)
+
+If you don't see migration files in the `prisma/migrations` directory, create them using:
+
+<details>
+<summary>▶️ Running inside Docker</summary>
+
+```bash
+docker compose exec app npx prisma migrate dev --name init
+```
+
+</details>
+
+<details>
+<summary>▶️ Or locally (if database is running on localhost)</summary>
+
+```bash
+npx prisma migrate dev --name init
+```
+
+</details>
+
+For production setup, apply existing migrations with:
+
+```bash
+npx prisma migrate deploy
+```
+
+> 📌 _Ensure migrations are run before starting the application to avoid schema issues._
+```bash
+npx prisma migrate dev --name init
+```
+
 ## Running application (Locally without Docker)
 
 ```bash
@@ -64,7 +98,26 @@ npm run lint
 npm run format
 ```
 
-### 🔍 Vulnerability Scanning
+### 🔍 Dependency Vulnerability Scanning
+
+You can scan for known vulnerabilities in your NPM dependencies using:
+
+```bash
+npm run audit
+```
+
+
+### 🛡 Docker Image Vulnerability Scanning
+
+To meet the security requirements, you must scan your **Docker images** (not just dependencies) for known CVEs.
+
+Using Docker Scout:
+
+```bash
+docker scout cves <image-name>
+```
+
+### 🔍
 
 You can scan for known security vulnerabilities in your dependencies using:
 
@@ -112,7 +165,7 @@ npm run audit
 docker compose -f docker-compose.yml -f docker-compose.override.yml up --build --watch
 ```
 
-2. **Make changes to `.ts` files in `src/`** — they will automatically trigger reload inside the container.
+**Make changes to `.ts` files in `src/`** — they will automatically trigger reload inside the container.
 
 ---
 
