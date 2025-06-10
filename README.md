@@ -98,15 +98,6 @@ npm run lint
 npm run format
 ```
 
-### 🔍 Dependency Vulnerability Scanning
-
-You can scan for known vulnerabilities in your NPM dependencies using:
-
-```bash
-npm run audit
-```
-
-
 ### 🛡 Docker Image Vulnerability Scanning
 
 To meet the security requirements, you must scan your **Docker images** (not just dependencies) for known CVEs.
@@ -114,17 +105,8 @@ To meet the security requirements, you must scan your **Docker images** (not jus
 Using Docker Scout:
 
 ```bash
-docker scout cves <image-name>
-```
-
-### 🔍
-
-You can scan for known security vulnerabilities in your dependencies using:
-
-```bash
 npm run audit
 ```
-
 ---
 
 ## 📦 Docker Setup
