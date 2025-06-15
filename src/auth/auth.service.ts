@@ -63,16 +63,24 @@ export class AuthService {
   }
 
   private createAccessToken(payload: Jwt): string {
-    return this.jwtService.sign(payload, {
-      expiresIn: process.env.TOKEN_EXPIRE_TIME ?? '1h',
-      secret: process.env.JWT_SECRET_KEY,
-    });
+    const { userId, login } = payload;
+    return this.jwtService.sign(
+      { userId, login },
+      {
+        expiresIn: process.env.TOKEN_EXPIRE_TIME ?? '1h',
+        secret: process.env.JWT_SECRET_KEY,
+      },
+    );
   }
 
   private createRefreshToken(payload: Jwt): string {
-    return this.jwtService.sign(payload, {
-      expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME ?? '24h',
-      secret: process.env.JWT_SECRET_REFRESH_KEY,
-    });
+    const { userId, login } = payload;
+    return this.jwtService.sign(
+      { userId, login },
+      {
+        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME ?? '24h',
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+      },
+    );
   }
 }

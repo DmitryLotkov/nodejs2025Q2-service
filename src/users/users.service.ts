@@ -26,7 +26,7 @@ export class UsersService {
   }
 
   async signUp(dto: CreateUserDto): Promise<Omit<User, 'password'>> {
-    const salt = process.env.CRYPT_SALT ?? 10;
+    const salt = Number(process.env.CRYPT_SALT) ?? 10;
     const hashedPassword = await bcrypt.hash(dto.password, salt);
     const user = await this.prisma.user.create({
       data: {
