@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto, User } from '../users/user-entity';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +10,7 @@ import { User as PrismaUser } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as process from 'node:process';
 import { AuthTokens, RefreshToken, Jwt } from './auth-model';
+import { decode } from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -48,18 +53,29 @@ export class AuthService {
   async refresh(refreshTokenDto: RefreshToken): Promise<AuthTokens> {
     const { refreshToken } = refreshTokenDto;
 
+    const payload = decode(refreshToken) as Jwt;
+
+    if (!payload || !payload.exp) {
+      throw new ForbiddenException('Invalid or expired refresh token');
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) {
+      throw new ForbiddenException('Invalid or expired refresh token');
+    }
+
     try {
-      const payload: Jwt = this.jwtService.verify(refreshToken, {
+      this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_SECRET_REFRESH_KEY,
       });
-
-      const newAccessToken = this.createAccessToken(payload);
-      const newRefreshToken = this.createRefreshToken(payload);
-
-      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
-    } catch (err) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+    } catch {
+      throw new ForbiddenException('Invalid or expired refresh token');
     }
+
+    const newAccessToken = this.createAccessToken(payload);
+    const newRefreshToken = this.createRefreshToken(payload);
+
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 
   private createAccessToken(payload: Jwt): string {

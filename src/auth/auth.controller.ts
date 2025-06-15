@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UnauthorizedException,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 import { CreateUserSchema } from '../users/user.schema';
@@ -24,6 +31,7 @@ export class AuthController {
   }
 
   @Public()
+  @HttpCode(HttpStatus.OK)
   @Post('/refresh')
   refresh(@Body() dto: RefreshToken) {
     const result = safeParse(RefreshTokenScheme, dto);
