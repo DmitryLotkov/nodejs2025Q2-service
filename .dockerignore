@@ -1,0 +1,9 @@
+node_modules
+test
+*.log
+.git
+.env
+dist
+Dockerfile*
+docker-compose*
+README*

@@ -15,9 +15,8 @@ import { UsersService } from './users.service';
 import { CreateUserSchema, UpdatePasswordSchema } from './user.schema';
 import { CreateUserDto, UpdatePasswordDto } from './user-entity';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
-import { usersRoutes } from '../../test/endpoints';
 
-@Controller(usersRoutes.getAll)
+@Controller('/user')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 

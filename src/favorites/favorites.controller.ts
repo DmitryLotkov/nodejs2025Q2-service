@@ -25,28 +25,41 @@ export class FavoritesController {
     private readonly albumService: AlbumsService,
   ) {}
   @Get()
-  getAll(): FavoritesResponse {
-    const favorites = this.favoritesService.getAll();
+  async getAll(): Promise<FavoritesResponse> {
+    const favorites = await this.favoritesService.getAll();
+    async function safeGet<T>(getter: () => Promise<T>): Promise<T | null> {
+      try {
+        return await getter();
+      } catch {
+        return null;
+      }
+    }
 
-    const artists = favorites.artists
-      .map((id) => this.artistsService.getById(id))
-      .filter(Boolean);
+    const artists = await Promise.all(
+      favorites.artists.map((id) =>
+        safeGet(() => this.artistsService.getById(id)),
+      ),
+    ).then((res) => res.filter(Boolean)); // [Artist]
 
-    const albums = favorites.albums
-      .map((id) => this.albumService.getById(id))
-      .filter(Boolean);
+    const albums = await Promise.all(
+      favorites.albums.map((id) =>
+        safeGet(() => this.albumService.getById(id)),
+      ),
+    ).then((res) => res.filter(Boolean)); // [Album]
 
-    const tracks = favorites.tracks
-      .map((id) => this.tracksService.getById(id))
-      .filter(Boolean);
+    const tracks = await Promise.all(
+      favorites.tracks.map((id) =>
+        safeGet(() => this.tracksService.getById(id)),
+      ),
+    ).then((res) => res.filter(Boolean)); // [Track]
 
     return { artists, albums, tracks };
   }
 
   @Post('track/:id')
-  addTrackToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
+  async addTrackToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
     try {
-      this.tracksService.getById(id);
+      await this.tracksService.getById(id);
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new UnprocessableEntityException(
@@ -55,7 +68,7 @@ export class FavoritesController {
       }
       throw err;
     }
-    this.favoritesService.addToFavorites('tracks', id);
+    await this.favoritesService.addToFavorites('tracks', id);
 
     return { message: 'Track added to favorites' };
   }
@@ -63,13 +76,13 @@ export class FavoritesController {
   @Delete('track/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteTrackFromFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
-    this.favoritesService.removeFromFavorites('tracks', id);
+    return this.favoritesService.removeFromFavorites('tracks', id);
   }
 
   @Post('album/:id')
-  addAlbumToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
+  async addAlbumToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
     try {
-      this.albumService.getById(id);
+      await this.albumService.getById(id);
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new UnprocessableEntityException(
@@ -78,7 +91,7 @@ export class FavoritesController {
       }
       throw err;
     }
-    this.favoritesService.addToFavorites('albums', id);
+    await this.favoritesService.addToFavorites('albums', id);
 
     return { message: 'Album added to favorites' };
   }
@@ -86,13 +99,13 @@ export class FavoritesController {
   @Delete('album/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAlbumFromFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
-    this.favoritesService.removeFromFavorites('albums', id);
+    return this.favoritesService.removeFromFavorites('albums', id);
   }
 
   @Post('artist/:id')
-  addArtistToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
+  async addArtistToFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
     try {
-      this.artistsService.getById(id);
+      await this.artistsService.getById(id);
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw new UnprocessableEntityException(
@@ -102,13 +115,13 @@ export class FavoritesController {
       throw err;
     }
 
-    this.favoritesService.addToFavorites('artists', id);
+    await this.favoritesService.addToFavorites('artists', id);
     return { message: 'Artist added to favorites' };
   }
 
   @Delete('artist/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteArtistFromFavorites(@Param('id', new ParseUUIDPipe()) id: string) {
-    this.favoritesService.removeFromFavorites('artists', id);
+    return this.favoritesService.removeFromFavorites('artists', id);
   }
 }

@@ -1,0 +1,16 @@
+services:
+  app:
+    image: dmitrylotkov/home-library-app:latest
+    container_name: home_library_app
+    env_file:
+      - .env
+    ports:
+      - '4000:4000'
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true

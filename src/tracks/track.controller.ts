@@ -14,9 +14,8 @@ import {
 import { TracksService } from './tracks.service';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 import { TrackDtoSchema, TrackDto } from './track-dto-schema';
-import { tracksRoutes } from '../../test/endpoints';
 
-@Controller(tracksRoutes.getAll)
+@Controller('/track')
 export class TrackController {
   constructor(private readonly tracksService: TracksService) {}
   @Get()
@@ -49,7 +48,7 @@ export class TrackController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id', new ParseUUIDPipe()) id: string): void {
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return this.tracksService.delete(id);
   }
 }

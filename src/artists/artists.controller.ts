@@ -12,12 +12,11 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ArtistsService } from './artists.service';
-import { artistsRoutes } from '../../test/endpoints';
 import { ValibotPipe } from '../common/pipes/valibot.pipe';
 import { CreateArtistSchema } from './artist-schema';
 import { ArtistDto } from './artist.entity';
 
-@Controller(artistsRoutes.getAll)
+@Controller('/artist')
 export class ArtistsController {
   constructor(private readonly artistsService: ArtistsService) {}
   @Get()
