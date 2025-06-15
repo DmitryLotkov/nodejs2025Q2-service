@@ -6,6 +6,8 @@ import {
 import { CreateUserDto, UpdatePasswordDto, User } from './user-entity';
 import { PrismaService } from '../prisma/prisma/prisma.service';
 import { User as PrismaUser } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import * as process from 'node:process';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +23,24 @@ export class UsersService {
     });
 
     return this.serializeUser(user);
+  }
+
+  async signUp(dto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    const salt = process.env.CRYPT_SALT ?? 10;
+    const hashedPassword = await bcrypt.hash(dto.password, salt);
+    const user = await this.prisma.user.create({
+      data: {
+        login: dto.login,
+        password: hashedPassword,
+        version: 1,
+      },
+    });
+
+    return this.serializeUser(user);
+  }
+
+  public async findByLogin(login: string): Promise<PrismaUser[]> {
+    return this.prisma.user.findMany({ where: { login } });
   }
 
   public async update(

@@ -24,7 +24,7 @@ services:
       context: .
       dockerfile: Dockerfile.postgres
     ports:
-      - '${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}'
+      - '${POSTGRES_PORT:-5440}:${POSTGRES_INNER_PORT:-5432}'
     env_file:
       - .env
     volumes:

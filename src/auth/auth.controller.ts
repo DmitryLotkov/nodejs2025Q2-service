@@ -1,0 +1,32 @@
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { ValibotPipe } from '../common/pipes/valibot.pipe';
+import { CreateUserSchema } from '../users/user.schema';
+import { CreateUserDto } from '../users/user-entity';
+import { RefreshTokenScheme } from './refresh-token.scheme';
+import { RefreshToken } from './auth-model';
+import { safeParse } from 'valibot';
+
+@Controller('/auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+  @Post('/login')
+  login(@Body(new ValibotPipe(CreateUserSchema)) dto: CreateUserDto) {
+    return this.authService.login(dto);
+  }
+
+  @Post('/signup')
+  signUp(@Body(new ValibotPipe(CreateUserSchema)) dto: CreateUserDto) {
+    return this.authService.signUp(dto);
+  }
+
+  @Post('/refresh')
+  refresh(@Body() dto: RefreshToken) {
+    const result = safeParse(RefreshTokenScheme, dto);
+    if (!result.success) {
+      throw new UnauthorizedException('Invalid or missing refresh token');
+    }
+
+    return this.authService.refresh(dto);
+  }
+}
