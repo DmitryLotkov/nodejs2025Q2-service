@@ -1,44 +1,46 @@
 import { Injectable, LoggerService, LogLevel } from '@nestjs/common';
-import * as rfs from 'rotating-file-stream';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
 const LOG_LEVELS: LogLevel[] = ['debug', 'log', 'warn', 'error', 'verbose'];
+
 @Injectable()
 export class LoggingService implements LoggerService {
   private readonly level: number;
-  private readonly maxSize: string;
-  private logStream: rfs.RotatingFileStream;
-  private errorStream: rfs.RotatingFileStream;
+  private readonly maxSize: number; // in bytes
+  private readonly logDir: string;
+  private readonly logFilePath: string;
+  private readonly errorFilePath: string;
 
   constructor() {
-    const logDir = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir);
+    const isDocker = process.env.NODE_ENV === 'production';
+    this.logDir = isDocker ? '/app/logs' : path.join(process.cwd(), 'logs');
+
+    try {
+      if (!fs.existsSync(this.logDir)) {
+        fs.mkdirSync(this.logDir, { recursive: true });
+      }
+    } catch (err) {
+      console.error('Failed to create log directory:', err);
     }
 
     const levelEnv = (process.env.LOG_LEVEL ?? 'log') as LogLevel;
-
     this.level = LOG_LEVELS.indexOf(levelEnv);
-    if (this.level === -1) {
-      this.level = 1;
-    }
+    if (this.level === -1) this.level = 1;
 
-    this.maxSize = process.env.MAX_LOG_FILE_SIZE ?? '100K';
+    this.maxSize = this.parseSize(process.env.MAX_LOG_FILE_SIZE ?? '100K');
+    this.logFilePath = path.join(this.logDir, 'app.log');
+    this.errorFilePath = path.join(this.logDir, 'error.log');
+  }
 
-    this.logStream = rfs.createStream('app.log', {
-      size: this.maxSize,
-      interval: '1d',
-      path: logDir,
-      compress: 'gzip',
-    });
-
-    this.errorStream = rfs.createStream('error.log', {
-      size: this.maxSize,
-      interval: '1d',
-      path: logDir,
-      compress: 'gzip',
-    });
+  private parseSize(sizeStr: string): number {
+    const match = sizeStr.match(/^(\d+)([kKmM]?)/);
+    if (!match) return 1024 * 100;
+    const value = parseInt(match[1], 10);
+    const unit = match[2].toLowerCase();
+    if (unit === 'k') return value * 1024;
+    if (unit === 'm') return value * 1024 * 1024;
+    return value;
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -49,10 +51,29 @@ export class LoggingService implements LoggerService {
     return `[${new Date().toISOString()}] [${level.toUpperCase()}] ${message}`;
   }
 
+  private rotateIfNeeded(filePath: string) {
+    if (fs.existsSync(filePath)) {
+      const stats = fs.statSync(filePath);
+      if (stats.size > this.maxSize) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const rotatedName = filePath.replace(/\.log$/, `-${timestamp}.log`);
+        fs.renameSync(filePath, rotatedName);
+        fs.writeFileSync(filePath, '');
+      }
+    } else {
+      fs.writeFileSync(filePath, '');
+    }
+  }
+
+  private write(filePath: string, message: string) {
+    this.rotateIfNeeded(filePath);
+    fs.appendFileSync(filePath, message + '\n');
+  }
+
   log(message: string) {
     if (this.shouldLog('log')) {
       const formatted = this.format('log', message);
-      this.logStream.write(formatted + '\n');
+      this.write(this.logFilePath, formatted);
       console.log(formatted);
     }
   }
@@ -60,7 +81,7 @@ export class LoggingService implements LoggerService {
   warn(message: string) {
     if (this.shouldLog('warn')) {
       const formatted = this.format('warn', message);
-      this.logStream.write(formatted + '\n');
+      this.write(this.logFilePath, formatted);
       console.warn(formatted);
     }
   }
@@ -68,7 +89,7 @@ export class LoggingService implements LoggerService {
   debug(message: string) {
     if (this.shouldLog('debug')) {
       const formatted = this.format('debug', message);
-      this.logStream.write(formatted + '\n');
+      this.write(this.logFilePath, formatted);
       console.debug(formatted);
     }
   }
@@ -76,7 +97,7 @@ export class LoggingService implements LoggerService {
   verbose(message: string) {
     if (this.shouldLog('verbose')) {
       const formatted = this.format('verbose', message);
-      this.logStream.write(formatted + '\n');
+      this.write(this.logFilePath, formatted);
       console.debug(formatted);
     }
   }
@@ -86,9 +107,9 @@ export class LoggingService implements LoggerService {
       'error',
       message + (trace ? `\n${trace}` : ''),
     );
-    this.errorStream.write(formatted + '\n');
+    this.write(this.errorFilePath, formatted);
     if (this.shouldLog('error')) {
-      this.logStream.write(formatted + '\n');
+      this.write(this.logFilePath, formatted);
       console.error(formatted);
     }
   }

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "audit": "docker scout cves home-library-app:latest",
+    "start-docker": "docker compose -f docker-compose.yml -f docker-compose.override.yml up --build --watch",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
