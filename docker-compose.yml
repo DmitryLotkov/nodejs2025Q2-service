@@ -13,6 +13,7 @@ services:
     depends_on:
       - postgres
     volumes:
+      - ./logs:/app/logs
       - postgres-data:/var/lib/postgresql/data
     networks:
       - app-network
@@ -28,7 +29,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./logs:/app/logs
       - postgres-data:/var/lib/postgresql/data
     networks:
       app-network:

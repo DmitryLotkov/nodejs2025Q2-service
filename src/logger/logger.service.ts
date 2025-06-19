@@ -13,8 +13,7 @@ export class LoggingService implements LoggerService {
   private readonly errorFilePath: string;
 
   constructor() {
-    const isDocker = process.env.NODE_ENV === 'production';
-    this.logDir = isDocker ? '/app/logs' : path.join(process.cwd(), 'logs');
+    this.logDir = path.join(process.cwd(), 'logs');
 
     try {
       if (!fs.existsSync(this.logDir)) {

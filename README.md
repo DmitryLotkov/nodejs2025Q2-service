@@ -218,10 +218,3 @@ PostgreSQL container uses a **volume** to store database files:
 volumes:
   - postgres-data:/var/lib/postgresql/data
 ```
-
-To also persist logs (optional):
-
-```yaml
-volumes:
-  - ./postgres-logs:/var/log/postgresql
-```
