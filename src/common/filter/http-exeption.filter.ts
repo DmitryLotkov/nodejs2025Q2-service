@@ -7,9 +7,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
+import { LoggingService } from '../../logger/logger.service';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  constructor(private readonly logger: LoggingService) {}
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -58,6 +60,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         issues = r.issues;
       }
     }
+
+    const logMsg = `[Exception] ${request.method} ${request.url} → ${status} :: ${typeof message === 'string' ? message : JSON.stringify(message)}`;
+    this.logger.error(logMsg);
 
     response.status(status).json({
       status,
